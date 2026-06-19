@@ -64,7 +64,7 @@
     <div id="root"></div>
     <script>
 (() => {
-  // work/sunset/app.jsx
+  // work/sunset-v2/app.jsx
   var { useState, useEffect, useCallback, useRef } = React;
   var iconNames = ["Plus", "Trash2", "Pencil", "X", "Link2", "Loader2", "BedDouble", "Car", "MapPin", "User", "Check"];
   function BasicIcon({ size = 16, className = "", style = {}, children }) {
@@ -90,10 +90,9 @@
   var iconGlyphs = { Plus: "+", Trash2: "\xD7", Pencil: "\u270E", X: "\xD7", Link2: "\u2197", Loader2: "\u25CC", BedDouble: "\u25AD", Car: "\u25B1", MapPin: "\u2022", User: "\u25CD", Check: "\u2713" };
   var iconComponents = Object.fromEntries(iconNames.map((name) => [name, (props) => React.createElement(BasicIcon, props, iconGlyphs[name])]));
   var { Plus, Trash2, Pencil, X, Link2, Loader2, BedDouble, Car, MapPin, User, Check } = iconComponents;
-  var PAGE_BG = "#123D57";
-  var SUNSET_BG = "radial-gradient(circle at 50% 10%, rgba(255,196,112,0.52) 0, rgba(255,196,112,0.18) 18rem, transparent 34rem), linear-gradient(180deg, #26345F 0%, #D97460 46%, #F6B65F 64%, #0E6F78 100%)";
-  var PANEL_LINE = "rgba(255,237,203,0.28)";
-  var PANEL_FILL = "rgba(255,238,204,0.12)";
+  var PAGE_BG = "#236F78";
+  var SUNSET_BG = "radial-gradient(circle at 50% 11%, rgba(255,214,127,0.95) 0 5.5rem, rgba(255,170,103,0.62) 5.6rem 14rem, transparent 26rem), linear-gradient(180deg, #F77E6B 0%, #F8A35D 34%, #FFD58C 56%, #4BA7A3 74%, #16636E 100%)";
+  var PANEL_LINE = "rgba(255,248,232,0.5)";
   var PAPER = "#FFF0CF";
   var PAPER_2 = "#FFF8E8";
   var CORAL = "#F66E5E";
@@ -381,7 +380,7 @@
         placeholder: "\u5E6B\u9019\u8D9F\u65C5\u884C\u53D6\u500B\u540D\u5B57",
         maxLength: 40
       }
-    ))), /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mb-7 sm:mb-10", style: { color: "rgba(244,233,215,0.55)" } }, "\u4F4F\u5BBF\u3001\u79DF\u8ECA\u3001\u666F\u9EDE\u4E00\u6B21\u6574\u7406 \u30FB \u670B\u53CB\u958B\u540C\u4E00\u7DB2\u5740\u53EF\u4E00\u8D77\u66F4\u65B0"), /* @__PURE__ */ React.createElement("div", { className: "tab-row flex gap-1.5 sm:gap-2 mb-0" }, TAB_ORDER.map((key) => {
+    ))), /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mb-7 sm:mb-10", style: { color: "rgba(255,248,232,0.78)" } }, "\u4F4F\u5BBF\u3001\u79DF\u8ECA\u3001\u666F\u9EDE\u4E00\u6B21\u6574\u7406 \u30FB \u670B\u53CB\u958B\u540C\u4E00\u7DB2\u5740\u53EF\u4E00\u8D77\u66F4\u65B0"), /* @__PURE__ */ React.createElement("div", { className: "tab-row flex gap-1.5 sm:gap-2 mb-0" }, TAB_ORDER.map((key) => {
       const cfg = CATEGORIES[key];
       const Icon = cfg.icon;
       const active = activeTab === key;
@@ -420,7 +419,7 @@
       "div",
       {
         className: "content-panel rounded-b-xl p-3 sm:p-6",
-        style: { background: PANEL_FILL, border: `1px solid ${PANEL_LINE}`, borderTop: "none" }
+        style: { background: "rgba(20,91,101,0.34)", border: `1px solid ${PANEL_LINE}`, borderTop: "none", boxShadow: "0 20px 55px rgba(89,54,38,0.16)" }
       },
       /* @__PURE__ */ React.createElement(
         "button",
@@ -447,7 +446,7 @@
           confirming: confirmDeleteId === item.id
         }
       )))
-    ), saveError && /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mt-4", style: { color: "#E8A0A0" } }, saveError), /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mt-8 sm:mt-10 px-2", style: { color: "rgba(244,233,215,0.35)" } }, "\u9019\u4EFD\u884C\u7A0B\u6703\u5132\u5B58\u5728\u96F2\u7AEF\u8CC7\u6599\u5EAB\u88E1\uFF0C\u670B\u53CB\u958B\u555F\u540C\u4E00\u500B\u7DB2\u5740\u5C31\u80FD\u770B\u5230\u66F4\u65B0\u3002")));
+    ), saveError && /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mt-4", style: { color: "#E8A0A0" } }, saveError), /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mt-8 sm:mt-10 px-2", style: { color: "rgba(255,248,232,0.62)" } }, "\u9019\u4EFD\u884C\u7A0B\u6703\u5132\u5B58\u5728\u96F2\u7AEF\u8CC7\u6599\u5EAB\u88E1\uFF0C\u670B\u53CB\u958B\u555F\u540C\u4E00\u500B\u7DB2\u5740\u5C31\u80FD\u770B\u5230\u66F4\u65B0\u3002")));
   }
   function TicketCard({ category, cfg, item, onEdit, onDeleteRequest, onDeleteConfirm, onDeleteCancel, confirming }) {
     const stubKeys = cfg.stub;
@@ -515,7 +514,7 @@
         target: "_blank",
         rel: "noopener noreferrer",
         className: "smart-link text-sm mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full px-3 py-1.5 no-underline",
-        style: { color: CORAL, background: "rgba(255,111,94,0.1)" },
+        style: { color: "#C84F46", background: "rgba(246,110,94,0.13)" },
         title: label
       },
       /* @__PURE__ */ React.createElement(Link2, { size: 13, className: "shrink-0" }),
@@ -642,9 +641,20 @@
         inset: 0;
         pointer-events: none;
         background:
-          linear-gradient(90deg, transparent 0 10%, rgba(255,244,216,0.2) 46%, rgba(255,244,216,0.28) 50%, rgba(255,244,216,0.2) 54%, transparent 90%),
-          radial-gradient(circle at 50% 64%, rgba(255,229,174,0.22), transparent 23rem);
-        opacity: 0.72;
+          linear-gradient(90deg, transparent 0 8%, rgba(255,248,232,0.26) 43%, rgba(255,248,232,0.42) 50%, rgba(255,248,232,0.26) 57%, transparent 92%),
+          radial-gradient(ellipse at 50% 48%, rgba(255,238,178,0.34), transparent 28rem),
+          linear-gradient(180deg, rgba(255,255,255,0.08), transparent 34%);
+        opacity: 0.95;
+      }
+      .sunset-page::after {
+        content: "";
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 32vh;
+        pointer-events: none;
+        background: linear-gradient(180deg, transparent, rgba(7,76,88,0.42));
       }
 
       .luggage-tag {
@@ -652,7 +662,7 @@
         padding: 1.6rem 2.4rem;
         border-radius: 0.5rem 1.4rem 0.5rem 1.4rem;
         transform: rotate(-1.4deg);
-        box-shadow: 0 16px 36px rgba(62,39,35,0.25), inset 0 1px 0 rgba(255,255,255,0.55);
+        box-shadow: 0 18px 42px rgba(108,64,43,0.24), inset 0 1px 0 rgba(255,255,255,0.62);
       }
       .luggage-tag::after {
         content: "";
@@ -698,7 +708,7 @@
       .ticket-card {
         border-radius: 0.9rem;
         overflow: visible;
-        box-shadow: 0 12px 26px rgba(76,49,43,0.2), inset 0 1px 0 rgba(255,255,255,0.48);
+        box-shadow: 0 14px 28px rgba(108,64,43,0.2), inset 0 1px 0 rgba(255,255,255,0.56);
       }
       .ticket-stub {
         border-top: 1.5px dashed rgba(36,48,42,0.3);
