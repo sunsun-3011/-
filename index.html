@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Travel Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.3.1",
+          "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
+          "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+          "lucide-react": "https://esm.sh/lucide-react@0.468.0?external=react",
+          "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+        }
+      }
+    </script>
+    <script type="module">
+      import { createClient } from "@supabase/supabase-js";
+
+      const SUPABASE_URL = "https://nbrachqddfabogbgysjw.supabase.co";
+      const SUPABASE_KEY = "sb_publishable_nw-jJ3tpvIjAFx-7TyD0Tw_qN31Gke-";
+      const TRIP_ID = "main";
+      const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      window.storage = {
+        async get(key, shared) {
+          if (shared && key === "trip-data") {
+            const { data, error } = await supabase
+              .from("trips")
+              .select("title, items")
+              .eq("id", TRIP_ID)
+              .single();
+
+            if (error) throw error;
+            return {
+              value: JSON.stringify({
+                title: data.title || "我的旅行",
+                items: data.items || { accommodation: [], car: [], attraction: [] },
+              }),
+            };
+          }
+
+          const value = localStorage.getItem(storageKey(key, shared));
+          if (value == null) throw new Error("Missing key");
+          return { value };
+        },
+        async set(key, value, shared) {
+          if (shared && key === "trip-data") {
+            const trip = JSON.parse(value);
+            const { error } = await supabase.from("trips").upsert({
+              id: TRIP_ID,
+              title: trip.title || "我的旅行",
+              items: trip.items || { accommodation: [], car: [], attraction: [] },
+              updated_at: new Date().toISOString(),
+            });
+
+            if (error) throw error;
+            return true;
+          }
+
+          localStorage.setItem(storageKey(key, shared), value);
+          return true;
+        },
+      };
+
+      function storageKey(key, shared) {
+        return `travel-tracker:${shared ? "shared" : "personal"}:${key}`;
+      }
+
+      await import("./dist/main.js");
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
