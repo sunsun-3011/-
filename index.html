@@ -64,7 +64,7 @@
     <div id="root"></div>
     <script>
 (() => {
-  // work/safari/app.jsx
+  // work/mobile/app.jsx
   var { useState, useEffect, useCallback, useRef } = React;
   var iconNames = ["Plus", "Trash2", "Pencil", "X", "Link2", "Loader2", "BedDouble", "Car", "MapPin", "User", "Check"];
   function BasicIcon({ size = 16, className = "", style = {}, children }) {
@@ -349,7 +349,7 @@
         isEditing: !!editingId,
         error: formError
       }
-    ), /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mb-8" }, /* @__PURE__ */ React.createElement(
+    ), /* @__PURE__ */ React.createElement("div", { className: "app-shell max-w-3xl mx-auto px-4 sm:px-6 py-7 sm:py-14" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 mb-6 sm:mb-8" }, /* @__PURE__ */ React.createElement(
       "div",
       {
         className: "font-display text-xs tracking-widest",
@@ -363,12 +363,12 @@
           setNameDraft(myName);
           setShowNamePrompt(true);
         },
-        className: "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-body transition-colors",
+        className: "name-button flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-body transition-colors",
         style: { background: PANEL_FILL, border: `1px solid ${PANEL_LINE}`, color: PAPER }
       },
       /* @__PURE__ */ React.createElement(User, { size: 13 }),
       myName || "\u8A2D\u5B9A\u4F60\u7684\u540D\u5B57"
-    )), /* @__PURE__ */ React.createElement("div", { className: "flex justify-center mb-3" }, /* @__PURE__ */ React.createElement("div", { className: "luggage-tag relative", style: { background: PAPER } }, /* @__PURE__ */ React.createElement("span", { className: "tag-hole", style: { background: PAGE_BG } }), /* @__PURE__ */ React.createElement("span", { className: "tag-string", style: { background: GOLD } }), /* @__PURE__ */ React.createElement(
+    )), /* @__PURE__ */ React.createElement("div", { className: "flex justify-center mb-3" }, /* @__PURE__ */ React.createElement("div", { className: "luggage-tag relative w-full sm:w-auto", style: { background: PAPER } }, /* @__PURE__ */ React.createElement("span", { className: "tag-hole", style: { background: PAGE_BG } }), /* @__PURE__ */ React.createElement("span", { className: "tag-string", style: { background: GOLD } }), /* @__PURE__ */ React.createElement(
       "input",
       {
         value: titleDraft,
@@ -380,7 +380,7 @@
         placeholder: "\u5E6B\u9019\u8D9F\u65C5\u884C\u53D6\u500B\u540D\u5B57",
         maxLength: 40
       }
-    ))), /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mb-10", style: { color: "rgba(244,233,215,0.55)" } }, "\u4F4F\u5BBF\u3001\u79DF\u8ECA\u3001\u666F\u9EDE\u4E00\u6B21\u6574\u7406 \u30FB \u670B\u53CB\u958B\u540C\u4E00\u7DB2\u5740\u53EF\u4E00\u8D77\u66F4\u65B0"), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 mb-0" }, TAB_ORDER.map((key) => {
+    ))), /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mb-7 sm:mb-10", style: { color: "rgba(244,233,215,0.55)" } }, "\u4F4F\u5BBF\u3001\u79DF\u8ECA\u3001\u666F\u9EDE\u4E00\u6B21\u6574\u7406 \u30FB \u670B\u53CB\u958B\u540C\u4E00\u7DB2\u5740\u53EF\u4E00\u8D77\u66F4\u65B0"), /* @__PURE__ */ React.createElement("div", { className: "tab-row flex gap-1.5 sm:gap-2 mb-0" }, TAB_ORDER.map((key) => {
       const cfg = CATEGORIES[key];
       const Icon = cfg.icon;
       const active = activeTab === key;
@@ -390,7 +390,7 @@
         {
           key,
           onClick: () => setActiveTab(key),
-          className: "flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-t-xl font-body text-sm sm:text-base transition-colors",
+          className: "tab-button flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-3 rounded-t-xl font-body text-sm sm:text-base transition-colors",
           style: {
             background: active ? PAPER : "transparent",
             color: active ? TEXT_DARK : PAPER,
@@ -418,21 +418,21 @@
     })), /* @__PURE__ */ React.createElement(
       "div",
       {
-        className: "rounded-b-xl p-4 sm:p-6",
+        className: "content-panel rounded-b-xl p-3 sm:p-6",
         style: { background: PANEL_FILL, border: `1px solid ${PANEL_LINE}`, borderTop: "none" }
       },
       /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => openAddForm(activeTab),
-          className: "flex items-center gap-2 px-4 py-2.5 rounded-full font-body text-sm mb-5 transition-transform hover:scale-[1.02]",
+          className: "add-button flex items-center justify-center gap-2 px-4 py-3 rounded-full font-body text-sm mb-4 sm:mb-5 transition-transform hover:scale-[1.02]",
           style: { border: `1.5px dashed ${PAPER}`, color: PAPER, background: "transparent" }
         },
         /* @__PURE__ */ React.createElement(Plus, { size: 16 }),
         "\u65B0\u589E",
         CATEGORIES[activeTab].label
       ),
-      (trip.items[activeTab] || []).length === 0 ? /* @__PURE__ */ React.createElement(EmptyState, { label: CATEGORIES[activeTab].label }) : /* @__PURE__ */ React.createElement("div", { className: "flex flex-col gap-4" }, sortedItems(activeTab, trip.items[activeTab]).map((item) => /* @__PURE__ */ React.createElement(
+      (trip.items[activeTab] || []).length === 0 ? /* @__PURE__ */ React.createElement(EmptyState, { label: CATEGORIES[activeTab].label }) : /* @__PURE__ */ React.createElement("div", { className: "flex flex-col gap-3 sm:gap-4" }, sortedItems(activeTab, trip.items[activeTab]).map((item) => /* @__PURE__ */ React.createElement(
         TicketCard,
         {
           key: item.id,
@@ -446,7 +446,7 @@
           confirming: confirmDeleteId === item.id
         }
       )))
-    ), saveError && /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mt-4", style: { color: "#E8A0A0" } }, saveError), /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mt-10", style: { color: "rgba(244,233,215,0.35)" } }, "\u9019\u4EFD\u884C\u7A0B\u6703\u5132\u5B58\u5728\u96F2\u7AEF\u8CC7\u6599\u5EAB\u88E1\uFF0C\u670B\u53CB\u958B\u555F\u540C\u4E00\u500B\u7DB2\u5740\u5C31\u80FD\u770B\u5230\u66F4\u65B0\u3002")));
+    ), saveError && /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mt-4", style: { color: "#E8A0A0" } }, saveError), /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mt-8 sm:mt-10 px-2", style: { color: "rgba(244,233,215,0.35)" } }, "\u9019\u4EFD\u884C\u7A0B\u6703\u5132\u5B58\u5728\u96F2\u7AEF\u8CC7\u6599\u5EAB\u88E1\uFF0C\u670B\u53CB\u958B\u555F\u540C\u4E00\u500B\u7DB2\u5740\u5C31\u80FD\u770B\u5230\u66F4\u65B0\u3002")));
   }
   function TicketCard({ category, cfg, item, onEdit, onDeleteRequest, onDeleteConfirm, onDeleteCancel, confirming }) {
     const stubKeys = cfg.stub;
@@ -459,7 +459,7 @@
         className: "ticket-card relative flex flex-col md:flex-row",
         style: { background: PAPER, color: TEXT_DARK }
       },
-      /* @__PURE__ */ React.createElement("div", { className: "flex-1 p-4 sm:p-5 min-w-0" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-start justify-between gap-3" }, /* @__PURE__ */ React.createElement("h3", { className: "font-body font-bold text-base sm:text-lg leading-snug break-words" }, item.name), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 shrink-0" }, /* @__PURE__ */ React.createElement(
+      /* @__PURE__ */ React.createElement("div", { className: "ticket-main flex-1 p-4 sm:p-5 min-w-0" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-start justify-between gap-3" }, /* @__PURE__ */ React.createElement("h3", { className: "font-body font-bold text-base sm:text-lg leading-snug break-words" }, item.name), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-1 shrink-0" }, /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: onEdit,
@@ -485,18 +485,7 @@
           "aria-label": "\u522A\u9664"
         },
         /* @__PURE__ */ React.createElement(Trash2, { size: 15 })
-      ))), item.address && /* @__PURE__ */ React.createElement("p", { className: "text-sm mt-1.5 flex items-start gap-1.5", style: { color: TEXT_MUTED } }, /* @__PURE__ */ React.createElement(MapPin, { size: 13, className: "mt-0.5 shrink-0" }), /* @__PURE__ */ React.createElement("span", { className: "break-words" }, item.address)), category === "car" && item.location && /* @__PURE__ */ React.createElement("p", { className: "text-sm mt-1.5 flex items-start gap-1.5", style: { color: TEXT_MUTED } }, /* @__PURE__ */ React.createElement(MapPin, { size: 13, className: "mt-0.5 shrink-0" }), /* @__PURE__ */ React.createElement("span", { className: "break-words" }, item.location)), safeLink && /* @__PURE__ */ React.createElement(
-        "a",
-        {
-          href: safeLink,
-          target: "_blank",
-          rel: "noopener noreferrer",
-          className: "text-sm mt-1.5 flex items-center gap-1.5 underline break-all",
-          style: { color: CORAL }
-        },
-        /* @__PURE__ */ React.createElement(Link2, { size: 13, className: "shrink-0" }),
-        link
-      ), item.notes && /* @__PURE__ */ React.createElement("p", { className: "text-sm mt-2 whitespace-pre-wrap break-words", style: { color: TEXT_DARK, opacity: 0.85 } }, item.notes), item.addedBy && /* @__PURE__ */ React.createElement("p", { className: "text-xs mt-3 font-mono", style: { color: "rgba(36,48,42,0.4)" } }, "by ", item.addedBy)),
+      ))), item.address && /* @__PURE__ */ React.createElement("p", { className: "text-sm mt-1.5 flex items-start gap-1.5", style: { color: TEXT_MUTED } }, /* @__PURE__ */ React.createElement(MapPin, { size: 13, className: "mt-0.5 shrink-0" }), /* @__PURE__ */ React.createElement("span", { className: "break-words" }, item.address)), category === "car" && item.location && /* @__PURE__ */ React.createElement("p", { className: "text-sm mt-1.5 flex items-start gap-1.5", style: { color: TEXT_MUTED } }, /* @__PURE__ */ React.createElement(MapPin, { size: 13, className: "mt-0.5 shrink-0" }), /* @__PURE__ */ React.createElement("span", { className: "break-words" }, item.location)), safeLink && /* @__PURE__ */ React.createElement(SmartLink, { href: safeLink, label: link }), item.notes && /* @__PURE__ */ React.createElement("p", { className: "text-sm mt-2 whitespace-pre-wrap break-words", style: { color: TEXT_DARK, opacity: 0.85 } }, item.notes), item.addedBy && /* @__PURE__ */ React.createElement("p", { className: "text-xs mt-3 font-mono", style: { color: "rgba(36,48,42,0.4)" } }, "by ", item.addedBy)),
       /* @__PURE__ */ React.createElement(
         "div",
         {
@@ -510,6 +499,26 @@
         }),
         price !== void 0 && price !== "" && price !== null && /* @__PURE__ */ React.createElement("div", { className: "text-center" }, /* @__PURE__ */ React.createElement("div", { className: "font-mono text-xs", style: { color: TEXT_MUTED } }, "NT$"), /* @__PURE__ */ React.createElement("div", { className: "font-mono text-sm font-bold", style: { color: CORAL } }, Number(price).toLocaleString()))
       )
+    );
+  }
+  function SmartLink({ href, label }) {
+    let host = "\u958B\u555F\u9023\u7D50";
+    try {
+      host = new URL(href).hostname.replace(/^www\./, "");
+    } catch (_) {
+    }
+    return /* @__PURE__ */ React.createElement(
+      "a",
+      {
+        href,
+        target: "_blank",
+        rel: "noopener noreferrer",
+        className: "smart-link text-sm mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full px-3 py-1.5 no-underline",
+        style: { color: CORAL, background: "rgba(255,111,94,0.1)" },
+        title: label
+      },
+      /* @__PURE__ */ React.createElement(Link2, { size: 13, className: "shrink-0" }),
+      /* @__PURE__ */ React.createElement("span", { className: "truncate" }, host)
     );
   }
   function EmptyState({ label }) {
@@ -692,6 +701,73 @@
       }
 
       input::placeholder, textarea::placeholder { color: #B6A98C; }
+
+      @media (max-width: 639px) {
+        .app-shell {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
+        }
+        .name-button {
+          max-width: 44vw;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .luggage-tag {
+          padding: 1.25rem 1.1rem;
+          border-radius: 0.55rem 1.05rem 0.55rem 1.05rem;
+          transform: rotate(-0.8deg);
+        }
+        .tag-input {
+          width: 100%;
+          min-width: 0;
+          font-size: 1.45rem;
+          line-height: 1.2;
+        }
+        .tab-row {
+          align-items: stretch;
+        }
+        .tab-button {
+          min-width: 0;
+          min-height: 3.3rem;
+          flex-direction: column;
+          line-height: 1.05;
+        }
+        .tab-button span {
+          white-space: nowrap;
+        }
+        .content-panel {
+          border-radius: 0 0 0.85rem 0.85rem;
+        }
+        .add-button {
+          width: 100%;
+          min-height: 3rem;
+        }
+        .ticket-card {
+          border-radius: 0.85rem;
+          overflow: hidden;
+        }
+        .ticket-main {
+          padding: 1rem;
+        }
+        .ticket-main h3 {
+          font-size: 1rem;
+          line-height: 1.35;
+        }
+        .smart-link {
+          max-width: 100%;
+        }
+        .ticket-stub {
+          align-items: stretch;
+          border-top: 1.5px dashed rgba(36,48,42,0.3);
+          background: rgba(255,247,232,0.42);
+        }
+        .ticket-stub > div {
+          flex: 1;
+          min-width: 0;
+        }
+      }
     `);
   }
   ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
