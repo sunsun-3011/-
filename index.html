@@ -69,7 +69,743 @@
         return `travel-tracker:${shared ? "shared" : "personal"}:${key}`;
       }
 
-      await import("./dist/main.js");
+      // work/preview/main.jsx
+import React2 from "react";
+import { createRoot } from "react-dom/client";
+
+// work/preview/travel-tracker.jsx
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import {
+  Plus,
+  Trash2,
+  Pencil,
+  X,
+  Link2,
+  Loader2,
+  BedDouble,
+  Car,
+  MapPin,
+  User,
+  Check
+} from "lucide-react";
+import { jsx, jsxs } from "react/jsx-runtime";
+var PAGE_BG = "#0E3D4D";
+var PANEL_LINE = "rgba(247,234,208,0.18)";
+var PANEL_FILL = "rgba(247,234,208,0.06)";
+var PAPER = "#F7EAD0";
+var PAPER_2 = "#FFF7E8";
+var CORAL = "#FF6F5E";
+var GOLD = "#F2B84B";
+var TEXT_DARK = "#1E3A40";
+var TEXT_MUTED = "#7C715A";
+var DANGER = "#D6543F";
+var STUB_WIDTH = "8.5rem";
+var CATEGORIES = {
+  accommodation: {
+    label: "\u4F4F\u5BBF",
+    eyebrow: "STAY",
+    icon: BedDouble,
+    fields: [
+      { key: "name", label: "\u540D\u7A31", type: "text", required: true, placeholder: "\u4F8B\u5982\uFF1A\u7901\u6EAA\u8001\u723A\u6EAB\u6CC9\u9152\u5E97" },
+      { key: "checkin", label: "\u5165\u4F4F\u65E5", type: "date" },
+      { key: "checkout", label: "\u9000\u623F\u65E5", type: "date" },
+      { key: "address", label: "\u5730\u5740", type: "text", placeholder: "\u5730\u5740\u6216\u5730\u5716\u5730\u9EDE" },
+      { key: "price", label: "\u50F9\u683C\uFF08NT$\uFF09", type: "number" },
+      { key: "link", label: "\u8A02\u623F\u9023\u7D50", type: "text", placeholder: "https://" },
+      { key: "notes", label: "\u5099\u8A3B", type: "textarea" }
+    ],
+    stub: ["checkin", "checkout"]
+  },
+  car: {
+    label: "\u79DF\u8ECA",
+    eyebrow: "DRIVE",
+    icon: Car,
+    fields: [
+      { key: "name", label: "\u8ECA\u884C / \u8ECA\u578B", type: "text", required: true, placeholder: "\u4F8B\u5982\uFF1A\u548C\u904B Toyota Altis" },
+      { key: "pickup", label: "\u53D6\u8ECA\u65E5\u671F", type: "date" },
+      { key: "dropoff", label: "\u9084\u8ECA\u65E5\u671F", type: "date" },
+      { key: "location", label: "\u53D6\u8ECA\u5730\u9EDE", type: "text" },
+      { key: "price", label: "\u50F9\u683C\uFF08NT$\uFF09", type: "number" },
+      { key: "link", label: "\u8A02\u8ECA\u9023\u7D50", type: "text", placeholder: "https://" },
+      { key: "notes", label: "\u5099\u8A3B", type: "textarea" }
+    ],
+    stub: ["pickup", "dropoff"]
+  },
+  attraction: {
+    label: "\u666F\u9EDE",
+    eyebrow: "VISIT",
+    icon: MapPin,
+    fields: [
+      { key: "name", label: "\u540D\u7A31", type: "text", required: true, placeholder: "\u4F8B\u5982\uFF1A\u6E05\u6C34\u65B7\u5D16" },
+      { key: "date", label: "\u65E5\u671F", type: "date" },
+      { key: "address", label: "\u5730\u5740", type: "text" },
+      { key: "price", label: "\u9580\u7968\uFF08NT$\uFF09", type: "number" },
+      { key: "link", label: "\u76F8\u95DC\u9023\u7D50", type: "text", placeholder: "https://" },
+      { key: "notes", label: "\u5099\u8A3B", type: "textarea" }
+    ],
+    stub: ["date"]
+  }
+};
+var TAB_ORDER = ["accommodation", "car", "attraction"];
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+function defaultTrip() {
+  return { title: "\u6211\u7684\u65C5\u884C", items: { accommodation: [], car: [], attraction: [] } };
+}
+function shortDate(d) {
+  if (!d) return null;
+  const parts = String(d).split("-");
+  if (parts.length !== 3) return d;
+  return `${parseInt(parts[1], 10)}/${parseInt(parts[2], 10)}`;
+}
+function fieldLabel(cfg, key) {
+  const f = cfg.fields.find((x) => x.key === key);
+  return f ? f.label.replace(/（.*?）/, "") : key;
+}
+function primarySortKey(category, item) {
+  if (category === "accommodation") return item.checkin || item.checkout || "";
+  if (category === "car") return item.pickup || item.dropoff || "";
+  return item.date || "";
+}
+function sortedItems(category, list) {
+  return [...list].sort((a, b) => {
+    const ka = primarySortKey(category, a);
+    const kb = primarySortKey(category, b);
+    if (!ka && !kb) return 0;
+    if (!ka) return 1;
+    if (!kb) return -1;
+    return ka.localeCompare(kb);
+  });
+}
+function App() {
+  const [trip, setTrip] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saveError, setSaveError] = useState("");
+  const [activeTab, setActiveTab] = useState("accommodation");
+  const [myName, setMyName] = useState("");
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formValues, setFormValues] = useState({});
+  const [formError, setFormError] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [titleDraft, setTitleDraft] = useState("");
+  const formOpenRef = useRef(formOpen);
+  formOpenRef.current = formOpen;
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await window.storage.get("trip-data", true);
+        const parsed = JSON.parse(res.value);
+        if (!cancelled) {
+          setTrip(parsed);
+          setTitleDraft(parsed.title || "");
+        }
+      } catch (e) {
+        const d = defaultTrip();
+        try {
+          await window.storage.set("trip-data", JSON.stringify(d), true);
+        } catch (_) {
+        }
+        if (!cancelled) {
+          setTrip(d);
+          setTitleDraft(d.title);
+        }
+      }
+      try {
+        const nameRes = await window.storage.get("my-name", false);
+        if (!cancelled) setMyName(nameRes.value);
+      } catch (e) {
+        if (!cancelled) setShowNamePrompt(true);
+      }
+      if (!cancelled) setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  useEffect(() => {
+    const t = setInterval(async () => {
+      if (formOpenRef.current) return;
+      try {
+        const res = await window.storage.get("trip-data", true);
+        const fresh = JSON.parse(res.value);
+        setTrip(fresh);
+      } catch (e) {
+      }
+    }, 6e3);
+    return () => clearInterval(t);
+  }, []);
+  const persist = useCallback(async (next) => {
+    setTrip(next);
+    try {
+      const result = await window.storage.set("trip-data", JSON.stringify(next), true);
+      if (!result) setSaveError("\u5132\u5B58\u5931\u6557\uFF0C\u8ACB\u518D\u8A66\u4E00\u6B21");
+      else setSaveError("");
+    } catch (e) {
+      setSaveError("\u5132\u5B58\u5931\u6557\uFF0C\u8ACB\u518D\u8A66\u4E00\u6B21");
+    }
+  }, []);
+  function saveName() {
+    const n = nameDraft.trim();
+    if (!n) return;
+    setMyName(n);
+    setShowNamePrompt(false);
+    window.storage.set("my-name", n, false).catch(() => {
+    });
+  }
+  function commitTitle() {
+    const t = titleDraft.trim() || "\u6211\u7684\u65C5\u884C";
+    if (trip && t !== trip.title) {
+      persist({ ...trip, title: t });
+    }
+    setTitleDraft(t);
+  }
+  function openAddForm(category) {
+    setActiveTab(category);
+    setEditingId(null);
+    setFormValues({});
+    setFormError("");
+    setFormOpen(true);
+  }
+  function openEditForm(category, item) {
+    setActiveTab(category);
+    setEditingId(item.id);
+    setFormValues(item);
+    setFormError("");
+    setFormOpen(true);
+  }
+  function closeForm() {
+    setFormOpen(false);
+    setEditingId(null);
+    setFormValues({});
+    setFormError("");
+  }
+  function updateField(key, value) {
+    setFormValues((prev) => ({ ...prev, [key]: value }));
+  }
+  function submitForm(e) {
+    e.preventDefault();
+    const cfg = CATEGORIES[activeTab];
+    const required = cfg.fields.filter((f) => f.required);
+    for (const f of required) {
+      if (!String(formValues[f.key] || "").trim()) {
+        setFormError(`\u8ACB\u586B\u5BEB\u300C${f.label}\u300D`);
+        return;
+      }
+    }
+    const list = trip.items[activeTab] || [];
+    let nextList;
+    if (editingId) {
+      nextList = list.map((it) => it.id === editingId ? { ...it, ...formValues, id: editingId } : it);
+    } else {
+      nextList = [...list, { ...formValues, id: uid(), addedBy: myName || "\u533F\u540D", createdAt: Date.now() }];
+    }
+    persist({ ...trip, items: { ...trip.items, [activeTab]: nextList } });
+    closeForm();
+  }
+  function requestDelete(id) {
+    setConfirmDeleteId(id);
+  }
+  function cancelDelete() {
+    setConfirmDeleteId(null);
+  }
+  function confirmDelete(category, id) {
+    const nextList = (trip.items[category] || []).filter((it) => it.id !== id);
+    persist({ ...trip, items: { ...trip.items, [category]: nextList } });
+    setConfirmDeleteId(null);
+  }
+  if (loading || !trip) {
+    return /* @__PURE__ */ jsxs(
+      "div",
+      {
+        className: "w-full min-h-screen flex items-center justify-center",
+        style: { background: PAGE_BG, color: PAPER },
+        children: [
+          /* @__PURE__ */ jsx(GlobalStyle, {}),
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3 font-body text-sm", style: { opacity: 0.8 }, children: [
+            /* @__PURE__ */ jsx(Loader2, { className: "animate-spin", size: 18 }),
+            "\u8F09\u5165\u884C\u7A0B\u4E2D\u2026"
+          ] })
+        ]
+      }
+    );
+  }
+  return /* @__PURE__ */ jsxs("div", { className: "w-full min-h-screen font-body", style: { background: PAGE_BG, color: PAPER }, children: [
+    /* @__PURE__ */ jsx(GlobalStyle, {}),
+    showNamePrompt && /* @__PURE__ */ jsx(
+      NamePromptModal,
+      {
+        nameDraft,
+        setNameDraft,
+        onSave: saveName,
+        onSkip: () => setShowNamePrompt(false)
+      }
+    ),
+    formOpen && /* @__PURE__ */ jsx(
+      ItemFormModal,
+      {
+        cfg: CATEGORIES[activeTab],
+        values: formValues,
+        onChange: updateField,
+        onSubmit: submitForm,
+        onClose: closeForm,
+        isEditing: !!editingId,
+        error: formError
+      }
+    ),
+    /* @__PURE__ */ jsxs("div", { className: "max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14", children: [
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between mb-8", children: [
+        /* @__PURE__ */ jsx(
+          "div",
+          {
+            className: "font-display text-xs tracking-widest",
+            style: { color: GOLD, letterSpacing: "0.18em" },
+            children: "\u2708 TRIP PLANNER"
+          }
+        ),
+        /* @__PURE__ */ jsxs(
+          "button",
+          {
+            onClick: () => {
+              setNameDraft(myName);
+              setShowNamePrompt(true);
+            },
+            className: "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-body transition-colors",
+            style: { background: PANEL_FILL, border: `1px solid ${PANEL_LINE}`, color: PAPER },
+            children: [
+              /* @__PURE__ */ jsx(User, { size: 13 }),
+              myName || "\u8A2D\u5B9A\u4F60\u7684\u540D\u5B57"
+            ]
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-3", children: /* @__PURE__ */ jsxs("div", { className: "luggage-tag relative", style: { background: PAPER }, children: [
+        /* @__PURE__ */ jsx("span", { className: "tag-hole", style: { background: PAGE_BG } }),
+        /* @__PURE__ */ jsx("span", { className: "tag-string", style: { background: GOLD } }),
+        /* @__PURE__ */ jsx(
+          "input",
+          {
+            value: titleDraft,
+            onChange: (e) => setTitleDraft(e.target.value),
+            onBlur: commitTitle,
+            onKeyDown: (e) => e.key === "Enter" && e.currentTarget.blur(),
+            className: "tag-input font-body",
+            style: { color: TEXT_DARK },
+            placeholder: "\u5E6B\u9019\u8D9F\u65C5\u884C\u53D6\u500B\u540D\u5B57",
+            maxLength: 40
+          }
+        )
+      ] }) }),
+      /* @__PURE__ */ jsx("p", { className: "text-center text-xs mb-10", style: { color: "rgba(244,233,215,0.55)" }, children: "\u4F4F\u5BBF\u3001\u79DF\u8ECA\u3001\u666F\u9EDE\u4E00\u6B21\u6574\u7406 \u30FB \u670B\u53CB\u958B\u540C\u4E00\u7DB2\u5740\u53EF\u4E00\u8D77\u66F4\u65B0" }),
+      /* @__PURE__ */ jsx("div", { className: "flex gap-2 mb-0", children: TAB_ORDER.map((key) => {
+        const cfg = CATEGORIES[key];
+        const Icon = cfg.icon;
+        const active = activeTab === key;
+        const count = (trip.items[key] || []).length;
+        return /* @__PURE__ */ jsxs(
+          "button",
+          {
+            onClick: () => setActiveTab(key),
+            className: "flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-t-xl font-body text-sm sm:text-base transition-colors",
+            style: {
+              background: active ? PAPER : "transparent",
+              color: active ? TEXT_DARK : PAPER,
+              border: `1px solid ${active ? PAPER : PANEL_LINE}`,
+              borderBottom: active ? `1px solid ${PAPER}` : `1px solid ${PANEL_LINE}`,
+              fontWeight: active ? 700 : 500
+            },
+            children: [
+              /* @__PURE__ */ jsx(Icon, { size: 16 }),
+              /* @__PURE__ */ jsx("span", { children: cfg.label }),
+              /* @__PURE__ */ jsx(
+                "span",
+                {
+                  className: "font-mono text-xs rounded-full px-1.5 py-0.5",
+                  style: {
+                    background: active ? CORAL : "rgba(244,233,215,0.12)",
+                    color: active ? PAPER_2 : PAPER,
+                    minWidth: "1.4em",
+                    textAlign: "center"
+                  },
+                  children: count
+                }
+              )
+            ]
+          },
+          key
+        );
+      }) }),
+      /* @__PURE__ */ jsxs(
+        "div",
+        {
+          className: "rounded-b-xl p-4 sm:p-6",
+          style: { background: PANEL_FILL, border: `1px solid ${PANEL_LINE}`, borderTop: "none" },
+          children: [
+            /* @__PURE__ */ jsxs(
+              "button",
+              {
+                onClick: () => openAddForm(activeTab),
+                className: "flex items-center gap-2 px-4 py-2.5 rounded-full font-body text-sm mb-5 transition-transform hover:scale-[1.02]",
+                style: { border: `1.5px dashed ${PAPER}`, color: PAPER, background: "transparent" },
+                children: [
+                  /* @__PURE__ */ jsx(Plus, { size: 16 }),
+                  "\u65B0\u589E",
+                  CATEGORIES[activeTab].label
+                ]
+              }
+            ),
+            (trip.items[activeTab] || []).length === 0 ? /* @__PURE__ */ jsx(EmptyState, { label: CATEGORIES[activeTab].label }) : /* @__PURE__ */ jsx("div", { className: "flex flex-col gap-4", children: sortedItems(activeTab, trip.items[activeTab]).map((item) => /* @__PURE__ */ jsx(
+              TicketCard,
+              {
+                category: activeTab,
+                cfg: CATEGORIES[activeTab],
+                item,
+                onEdit: () => openEditForm(activeTab, item),
+                onDeleteRequest: () => requestDelete(item.id),
+                onDeleteConfirm: () => confirmDelete(activeTab, item.id),
+                onDeleteCancel: cancelDelete,
+                confirming: confirmDeleteId === item.id
+              },
+              item.id
+            )) })
+          ]
+        }
+      ),
+      saveError && /* @__PURE__ */ jsx("p", { className: "text-center text-xs mt-4", style: { color: "#E8A0A0" }, children: saveError }),
+      /* @__PURE__ */ jsx("p", { className: "text-center text-xs mt-10", style: { color: "rgba(244,233,215,0.35)" }, children: "\u9019\u4EFD\u884C\u7A0B\u6703\u5132\u5B58\u5728\u96F2\u7AEF\u8CC7\u6599\u5EAB\u88E1\uFF0C\u670B\u53CB\u958B\u555F\u540C\u4E00\u500B\u7DB2\u5740\u5C31\u80FD\u770B\u5230\u66F4\u65B0\u3002" })
+    ] })
+  ] });
+}
+function TicketCard({ category, cfg, item, onEdit, onDeleteRequest, onDeleteConfirm, onDeleteCancel, confirming }) {
+  const stubKeys = cfg.stub;
+  const price = item.price;
+  const link = (item.link || "").trim();
+  const safeLink = link && !/^https?:\/\//i.test(link) ? `https://${link}` : link;
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      className: "ticket-card relative flex flex-col md:flex-row",
+      style: { background: PAPER, color: TEXT_DARK },
+      children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex-1 p-4 sm:p-5 min-w-0", children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex items-start justify-between gap-3", children: [
+            /* @__PURE__ */ jsx("h3", { className: "font-body font-bold text-base sm:text-lg leading-snug break-words", children: item.name }),
+            /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1 shrink-0", children: [
+              /* @__PURE__ */ jsx(
+                "button",
+                {
+                  onClick: onEdit,
+                  className: "p-1.5 rounded-md transition-colors",
+                  style: { color: TEXT_MUTED },
+                  "aria-label": "\u7DE8\u8F2F",
+                  children: /* @__PURE__ */ jsx(Pencil, { size: 15 })
+                }
+              ),
+              confirming ? /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+                /* @__PURE__ */ jsx(
+                  "button",
+                  {
+                    onClick: onDeleteConfirm,
+                    className: "text-xs font-bold px-2 py-1 rounded-md",
+                    style: { background: DANGER, color: PAPER_2 },
+                    children: "\u78BA\u5B9A\u522A\u9664"
+                  }
+                ),
+                /* @__PURE__ */ jsx("button", { onClick: onDeleteCancel, className: "p-1.5 rounded-md", style: { color: TEXT_MUTED }, children: /* @__PURE__ */ jsx(X, { size: 15 }) })
+              ] }) : /* @__PURE__ */ jsx(
+                "button",
+                {
+                  onClick: onDeleteRequest,
+                  className: "p-1.5 rounded-md transition-colors",
+                  style: { color: TEXT_MUTED },
+                  "aria-label": "\u522A\u9664",
+                  children: /* @__PURE__ */ jsx(Trash2, { size: 15 })
+                }
+              )
+            ] })
+          ] }),
+          item.address && /* @__PURE__ */ jsxs("p", { className: "text-sm mt-1.5 flex items-start gap-1.5", style: { color: TEXT_MUTED }, children: [
+            /* @__PURE__ */ jsx(MapPin, { size: 13, className: "mt-0.5 shrink-0" }),
+            /* @__PURE__ */ jsx("span", { className: "break-words", children: item.address })
+          ] }),
+          category === "car" && item.location && /* @__PURE__ */ jsxs("p", { className: "text-sm mt-1.5 flex items-start gap-1.5", style: { color: TEXT_MUTED }, children: [
+            /* @__PURE__ */ jsx(MapPin, { size: 13, className: "mt-0.5 shrink-0" }),
+            /* @__PURE__ */ jsx("span", { className: "break-words", children: item.location })
+          ] }),
+          safeLink && /* @__PURE__ */ jsxs(
+            "a",
+            {
+              href: safeLink,
+              target: "_blank",
+              rel: "noopener noreferrer",
+              className: "text-sm mt-1.5 flex items-center gap-1.5 underline break-all",
+              style: { color: CORAL },
+              children: [
+                /* @__PURE__ */ jsx(Link2, { size: 13, className: "shrink-0" }),
+                link
+              ]
+            }
+          ),
+          item.notes && /* @__PURE__ */ jsx("p", { className: "text-sm mt-2 whitespace-pre-wrap break-words", style: { color: TEXT_DARK, opacity: 0.85 }, children: item.notes }),
+          item.addedBy && /* @__PURE__ */ jsxs("p", { className: "text-xs mt-3 font-mono", style: { color: "rgba(36,48,42,0.4)" }, children: [
+            "by ",
+            item.addedBy
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs(
+          "div",
+          {
+            className: "ticket-stub flex md:flex-col items-center md:items-stretch justify-between md:justify-center gap-2 px-4 py-3 md:py-4",
+            style: { width: "auto" },
+            children: [
+              stubKeys.map((key) => {
+                const val = shortDate(item[key]);
+                if (!val) return null;
+                return /* @__PURE__ */ jsxs("div", { className: "text-center md:text-center", children: [
+                  /* @__PURE__ */ jsx("div", { className: "font-mono text-xs", style: { color: TEXT_MUTED }, children: fieldLabel(cfg, key) }),
+                  /* @__PURE__ */ jsx("div", { className: "font-mono text-sm font-bold", children: val })
+                ] }, key);
+              }),
+              price !== void 0 && price !== "" && price !== null && /* @__PURE__ */ jsxs("div", { className: "text-center", children: [
+                /* @__PURE__ */ jsx("div", { className: "font-mono text-xs", style: { color: TEXT_MUTED }, children: "NT$" }),
+                /* @__PURE__ */ jsx("div", { className: "font-mono text-sm font-bold", style: { color: CORAL }, children: Number(price).toLocaleString() })
+              ] })
+            ]
+          }
+        )
+      ]
+    }
+  );
+}
+function EmptyState({ label }) {
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      className: "text-center py-12 px-4 rounded-xl",
+      style: { border: `1.5px dashed ${PANEL_LINE}`, color: "rgba(244,233,215,0.5)" },
+      children: [
+        /* @__PURE__ */ jsxs("p", { className: "text-sm", children: [
+          "\u9084\u6C92\u6709\u4EFB\u4F55",
+          label
+        ] }),
+        /* @__PURE__ */ jsxs("p", { className: "text-xs mt-1", children: [
+          "\u9EDE\u4E0A\u9762\u300C\u65B0\u589E",
+          label,
+          "\u300D\uFF0C\u7B2C\u4E00\u7B46\u5C31\u9760\u4F60\u4E86"
+        ] })
+      ]
+    }
+  );
+}
+function ItemFormModal({ cfg, values, onChange, onSubmit, onClose, isEditing, error }) {
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      className: "fixed inset-0 z-50 flex items-center justify-center p-4",
+      style: { background: "rgba(10,18,16,0.65)" },
+      onMouseDown: (e) => {
+        if (e.target === e.currentTarget) onClose();
+      },
+      children: /* @__PURE__ */ jsxs(
+        "form",
+        {
+          onSubmit,
+          className: "w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto",
+          style: { background: PAPER_2, color: TEXT_DARK },
+          children: [
+            /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between mb-4", children: [
+              /* @__PURE__ */ jsxs("h2", { className: "font-body font-bold text-lg", children: [
+                isEditing ? "\u7DE8\u8F2F" : "\u65B0\u589E",
+                cfg.label
+              ] }),
+              /* @__PURE__ */ jsx("button", { type: "button", onClick: onClose, style: { color: TEXT_MUTED }, "aria-label": "\u95DC\u9589", children: /* @__PURE__ */ jsx(X, { size: 20 }) })
+            ] }),
+            /* @__PURE__ */ jsx("div", { className: "flex flex-col gap-3.5", children: cfg.fields.map((f) => /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsxs("label", { className: "text-xs font-body block mb-1", style: { color: TEXT_MUTED }, children: [
+                f.label,
+                f.required && /* @__PURE__ */ jsx("span", { style: { color: CORAL }, children: " *" })
+              ] }),
+              f.type === "textarea" ? /* @__PURE__ */ jsx(
+                "textarea",
+                {
+                  value: values[f.key] || "",
+                  onChange: (e) => onChange(f.key, e.target.value),
+                  placeholder: f.placeholder,
+                  rows: 3,
+                  className: "w-full rounded-lg px-3 py-2 text-sm font-body",
+                  style: { border: "1px solid #D9CDB6", background: "#fff" }
+                }
+              ) : /* @__PURE__ */ jsx(
+                "input",
+                {
+                  type: f.type,
+                  value: values[f.key] || "",
+                  onChange: (e) => onChange(f.key, e.target.value),
+                  placeholder: f.placeholder,
+                  className: "w-full rounded-lg px-3 py-2 text-sm font-body",
+                  style: { border: "1px solid #D9CDB6", background: "#fff" }
+                }
+              )
+            ] }, f.key)) }),
+            error && /* @__PURE__ */ jsx("p", { className: "text-xs mt-3", style: { color: DANGER }, children: error }),
+            /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 mt-5", children: [
+              /* @__PURE__ */ jsxs(
+                "button",
+                {
+                  type: "submit",
+                  className: "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full font-body font-bold text-sm",
+                  style: { background: CORAL, color: PAPER_2 },
+                  children: [
+                    /* @__PURE__ */ jsx(Check, { size: 16 }),
+                    isEditing ? "\u5132\u5B58\u8B8A\u66F4" : "\u65B0\u589E"
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsx(
+                "button",
+                {
+                  type: "button",
+                  onClick: onClose,
+                  className: "px-4 py-2.5 rounded-full font-body text-sm",
+                  style: { border: "1px solid #D9CDB6", color: TEXT_MUTED },
+                  children: "\u53D6\u6D88"
+                }
+              )
+            ] })
+          ]
+        }
+      )
+    }
+  );
+}
+function NamePromptModal({ nameDraft, setNameDraft, onSave, onSkip }) {
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      className: "fixed inset-0 z-50 flex items-center justify-center p-4",
+      style: { background: "rgba(10,18,16,0.65)" },
+      children: /* @__PURE__ */ jsxs("div", { className: "w-full max-w-sm rounded-2xl p-6", style: { background: PAPER_2, color: TEXT_DARK }, children: [
+        /* @__PURE__ */ jsx("h2", { className: "font-body font-bold text-lg mb-1", children: "\u4F60\u662F\u8AB0\uFF1F" }),
+        /* @__PURE__ */ jsx("p", { className: "text-sm mb-4", style: { color: TEXT_MUTED }, children: "\u586B\u4E0A\u540D\u5B57\uFF0C\u6BCF\u7B46\u7D00\u9304\u5C31\u6703\u6A19\u8A18\u65B0\u589E\u8005\u3002" }),
+        /* @__PURE__ */ jsx(
+          "input",
+          {
+            autoFocus: true,
+            value: nameDraft,
+            onChange: (e) => setNameDraft(e.target.value),
+            onKeyDown: (e) => e.key === "Enter" && onSave(),
+            placeholder: "\u4F8B\u5982\uFF1A\u5C0F\u660E",
+            className: "w-full rounded-lg px-3 py-2.5 text-sm font-body mb-4",
+            style: { border: "1px solid #D9CDB6", background: "#fff" }
+          }
+        ),
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              onClick: onSave,
+              className: "flex-1 py-2.5 rounded-full font-body font-bold text-sm",
+              style: { background: CORAL, color: PAPER_2 },
+              children: "\u958B\u59CB\u898F\u5283"
+            }
+          ),
+          /* @__PURE__ */ jsx("button", { onClick: onSkip, className: "px-4 py-2.5 rounded-full font-body text-sm", style: { color: TEXT_MUTED }, children: "\u5148\u8DF3\u904E" })
+        ] })
+      ] })
+    }
+  );
+}
+function GlobalStyle() {
+  return /* @__PURE__ */ jsx("style", { children: `
+      @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+      .font-display { font-family: 'Big Shoulders Stencil', 'Noto Sans TC', sans-serif; }
+      .font-body { font-family: 'Noto Sans TC', sans-serif; }
+      .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+      .luggage-tag {
+        position: relative;
+        padding: 1.6rem 2.4rem;
+        border-radius: 0.5rem 1.4rem 0.5rem 1.4rem;
+        transform: rotate(-1.4deg);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      }
+      .tag-hole {
+        position: absolute;
+        top: 10px;
+        left: 18px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .tag-string {
+        position: absolute;
+        top: -14px;
+        left: 23px;
+        width: 3px;
+        height: 18px;
+        transform: rotate(20deg);
+        border-radius: 2px;
+      }
+      .tag-input {
+        background: transparent;
+        border: none;
+        outline: none;
+        text-align: center;
+        font-weight: 800;
+        font-size: 1.5rem;
+        min-width: 12rem;
+        max-width: 100%;
+      }
+      @media (min-width: 640px) {
+        .tag-input { font-size: 1.9rem; }
+      }
+
+      .ticket-card {
+        border-radius: 0.9rem;
+        overflow: visible;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+      }
+      .ticket-stub {
+        border-top: 1.5px dashed rgba(36,48,42,0.3);
+        min-width: 0;
+      }
+      @media (min-width: 768px) {
+        .ticket-stub {
+          border-top: none;
+          border-left: 1.5px dashed rgba(36,48,42,0.3);
+          width: ${STUB_WIDTH};
+          flex-shrink: 0;
+          position: relative;
+        }
+        .ticket-stub::before,
+        .ticket-stub::after {
+          content: "";
+          position: absolute;
+          left: -9px;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: ${PAGE_BG};
+        }
+        .ticket-stub::before { top: -8px; }
+        .ticket-stub::after { bottom: -8px; }
+      }
+
+      input::placeholder, textarea::placeholder { color: #B6A98C; }
+    ` });
+}
+
+// work/preview/main.jsx
+import { jsx as jsx2 } from "react/jsx-runtime";
+createRoot(document.getElementById("root")).render(
+  /* @__PURE__ */ jsx2(React2.StrictMode, { children: /* @__PURE__ */ jsx2(App, {}) })
+);
+
     </script>
   </head>
   <body>
