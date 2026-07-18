@@ -66,7 +66,7 @@
 (() => {
   // work/sunset-v2/app.jsx
   var { useState, useEffect, useCallback, useRef } = React;
-  var iconNames = ["Plus", "Trash2", "Pencil", "X", "Link2", "Loader2", "BedDouble", "Car", "MapPin", "User", "Check"];
+  var iconNames = ["Plus", "Trash2", "Pencil", "X", "Link2", "Loader2", "BedDouble", "Car", "MapPin", "User", "Check", "Download"];
   function BasicIcon({ size = 16, className = "", style = {}, children }) {
     return React.createElement(
       "span",
@@ -87,9 +87,9 @@
       children
     );
   }
-  var iconGlyphs = { Plus: "+", Trash2: "\xD7", Pencil: "\u270E", X: "\xD7", Link2: "\u2197", Loader2: "\u25CC", BedDouble: "\u25AD", Car: "\u25B1", MapPin: "\u2022", User: "\u25CD", Check: "\u2713" };
+  var iconGlyphs = { Plus: "+", Trash2: "\xD7", Pencil: "\u270E", X: "\xD7", Link2: "\u2197", Loader2: "\u25CC", BedDouble: "\u25AD", Car: "\u25B1", MapPin: "\u2022", User: "\u25CD", Check: "\u2713", Download: "\u21E9" };
   var iconComponents = Object.fromEntries(iconNames.map((name) => [name, (props) => React.createElement(BasicIcon, props, iconGlyphs[name])]));
-  var { Plus, Trash2, Pencil, X, Link2, Loader2, BedDouble, Car, MapPin, User, Check } = iconComponents;
+  var { Plus, Trash2, Pencil, X, Link2, Loader2, BedDouble, Car, MapPin, User, Check, Download } = iconComponents;
   var PAGE_BG = "#236F78";
   var SUNSET_BG = "radial-gradient(circle at 50% 11%, rgba(255,214,127,0.95) 0 5.5rem, rgba(255,170,103,0.62) 5.6rem 14rem, transparent 26rem), linear-gradient(180deg, #F77E6B 0%, #F8A35D 34%, #FFD58C 56%, #4BA7A3 74%, #16636E 100%)";
   var PANEL_LINE = "rgba(255,248,232,0.5)";
@@ -139,6 +139,7 @@
       fields: [
         { key: "name", label: "\u540D\u7A31", type: "text", required: true, placeholder: "\u4F8B\u5982\uFF1A\u6E05\u6C34\u65B7\u5D16" },
         { key: "date", label: "\u65E5\u671F", type: "date" },
+        { key: "time", label: "\u6642\u9593", type: "text", placeholder: "\u4F8B\u5982\uFF1A\u4E0A\u5348 / Morning" },
         { key: "address", label: "\u5730\u5740", type: "text" },
         { key: "price", label: "\u9580\u7968\uFF08NT$\uFF09", type: "number" },
         { key: "link", label: "\u76F8\u95DC\u9023\u7D50", type: "text", placeholder: "https://" },
@@ -152,7 +153,245 @@
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
   function defaultTrip() {
-    return { title: "\u6211\u7684\u65C5\u884C", items: { accommodation: [], car: [], attraction: [] } };
+    return mergeOkinawaItinerary({ title: "\u6C96\u7E69 7\u5929 6\u591C\u884C\u7A0B", items: { accommodation: [], car: [], attraction: [] } });
+  }
+  var OKINAWA_ITINERARY_VERSION = "okinawa-2026-09-12-to-09-18-daily-table";
+  var OKINAWA_DAY_META = {
+    "2026-09-12": { day: "DAY 1", meals: "\u65E9\u9910\uFF1AX\u3000\u5348\u9910\uFF1A\u6A5F\u4E0A\u3000\u665A\u9910\uFF1A\u81EA\u7406", mealsEn: "Breakfast: - | Lunch: In-flight | Dinner: On own", stay: "1-15-9 Gushi 1\u968E\uFF0C\u90A3\u9738\u5E02 901-0146" },
+    "2026-09-13": { day: "DAY 2", meals: "\u65E9\u9910\uFF1A\u81EA\u7406\u3000\u5348\u9910\uFF1A\u7267\u5FD7\u5E02\u5834\u73FE\u6488\u6D77\u9BAE\u3000\u665A\u9910\uFF1A\u81EA\u7406", mealsEn: "Breakfast: Own | Lunch: Fresh seafood at Makishi | Dinner: Own", stay: "\u540C Day1\uFF08\u90A3\u9738\uFF09Same as Day1" },
+    "2026-09-14": { day: "DAY 3", meals: "\u65E9\u9910\uFF1A\u81EA\u7406\u3000\u5348\u9910\uFF1A\u81EA\u7406\u3000\u665A\u9910\uFF1A\u7F8E\u570B\u6751\u81EA\u7406", mealsEn: "Breakfast: Own | Lunch: Own | Dinner: American Village, own", stay: "\u540C Day1\uFF08\u90A3\u9738\uFF09Same as Day1" },
+    "2026-09-15": { day: "DAY 4", meals: "\u65E9\u9910\uFF1A\u81EA\u7406\u3000\u5348\u9910\uFF1A\u570B\u969B\u901A\u81EA\u7406\u3000\u665A\u9910\uFF1A\u570B\u969B\u901A\u81EA\u7406", mealsEn: "Breakfast: Own | Lunch/Dinner: Kokusai-dori, own", stay: "\u540C Day1\uFF08\u90A3\u9738\uFF09Same as Day1" },
+    "2026-09-16": { day: "DAY 5", meals: "\u65E9\u9910\uFF1A\u81EA\u7406\u3000\u5348\u9910\uFF1A\u672C\u90E8\u6F01\u6E2F\u73FE\u64C4\u6D77\u9BAE\u3000\u665A\u9910\uFF1A\u81EA\u7406", mealsEn: "Breakfast: Own | Lunch: Fresh seafood at Motobu Port | Dinner: Own", stay: "346-1 Sakiyama, Nakijin 905-0422" },
+    "2026-09-17": { day: "DAY 6", meals: "\u65E9\u9910\uFF1A\u81EA\u7406\u3000\u5348\u9910\uFF1A\u81EA\u7406\u3000\u665A\u9910\uFF1A\u4F4F\u5BBF\u70E4\u8089", mealsEn: "Breakfast/Lunch: Own | Dinner: BBQ at accommodation", stay: "\u540C Day5\uFF08Nakijin\uFF09Same as Day5" },
+    "2026-09-18": { day: "DAY 7", meals: "\u65E9\u9910\uFF1A\u81EA\u7406\u3000\u5348\u9910\uFF1AOutlet\u81EA\u7406\u3000\u665A\u9910\uFF1A\u6A5F\u4E0A\uFF0F\u81EA\u7406", mealsEn: "Breakfast: Own | Lunch: Outlet mall, own | Dinner: In-flight/Own", stay: "-" }
+  };
+  var OKINAWA_ITEM_TIMES = {
+    "okinawa-20260912-arrival": "18:45 / \u665A\u4E0A",
+    "okinawa-20260913-car": "\u4E0A\u5348 / Morning",
+    "okinawa-20260913-makishi": "\u4E0A\u5348\uFF5E\u4E2D\u5348 / Morning-Noon",
+    "okinawa-20260913-sefautaki": "\u4E0B\u5348 / Afternoon",
+    "okinawa-20260913-chinen": "\u4E0B\u5348 / Afternoon",
+    "okinawa-20260913-okinawaworld": "\u4E0B\u5348 / Afternoon",
+    "okinawa-20260914-zanpa": "\u4E0A\u5348 / Morning",
+    "okinawa-20260914-zakimi": "\u4E0A\u5348\uFF5E\u4E2D\u5348 / Morning-Noon",
+    "okinawa-20260914-americanvillage": "\u4E0B\u5348\uFF5E\u665A\u4E0A / Afternoon-Night",
+    "okinawa-20260915-shuri": "\u4E0A\u5348 / Morning",
+    "okinawa-20260915-ukishima": "\u4E2D\u5348\u524D / Before noon",
+    "okinawa-20260915-kokusai": "\u4E2D\u5348\uFF5E\u665A\u4E0A / Noon-Night",
+    "okinawa-20260916-checkout": "\u4E0A\u5348 / Morning",
+    "okinawa-20260916-kyoda": "\u4E0A\u5348 / Morning",
+    "okinawa-20260916-aquarium": "\u4E2D\u5348\uFF5E\u4E0B\u5348 / Noon-PM",
+    "okinawa-20260916-motobu": "\u4E0B\u5348 / Afternoon",
+    "okinawa-20260916-nakijin": "\u508D\u665A / Evening",
+    "okinawa-20260917-castle": "\u4E0A\u5348 / Morning",
+    "okinawa-20260917-kouri": "\u4E2D\u5348\uFF5E\u4E0B\u5348 / Noon-PM",
+    "okinawa-20260917-yagaji": "\u4E0B\u5348 / Afternoon",
+    "okinawa-20260917-bbq": "\u665A\u4E0A / Night",
+    "okinawa-20260918-checkout": "\u4E0A\u5348\uFF08\u7D0410:00\u524D\uFF09 / Morning",
+    "okinawa-20260918-outlet": "11:30\uFF5E16:00",
+    "okinawa-20260918-airport": "16:00\uFF5E19:45"
+  };
+  var OKINAWA_ATTRACTIONS = [
+    {
+      id: "okinawa-20260912-arrival",
+      name: "DAY 1｜抵達沖繩、前往那霸住宿",
+      date: "2026-09-12",
+      address: "那覇空港；住宿：1-15-9 Gushi 1階，那霸市 901-0146",
+      notes: "18:45 CI132 高雄 → 那霸抵達。晚上搭計程車或單軌電車前往住宿，附近餐廳晚餐自理。\nMeals: Lunch in-flight, dinner on own. Stay: Naha."
+    },
+    {
+      id: "okinawa-20260913-car",
+      name: "DAY 2｜取車",
+      date: "2026-09-13",
+      address: "那霸市區租車行（請確認租車行地址與營業時間）",
+      notes: "上午取車，9/13 起租車生效。建議先確認取車文件、保險、ETC 與還車規則。"
+    },
+    {
+      id: "okinawa-20260913-makishi",
+      name: "DAY 2｜第一牧志公設市場（魚市場①）",
+      date: "2026-09-13",
+      address: "〒900-0014 沖縄県那覇市松尾2-10-1",
+      notes: "上午至中午安排。午餐可吃牧志市場現撈海鮮。\nMakishi Public Market: fresh seafood lunch."
+    },
+    {
+      id: "okinawa-20260913-sefautaki",
+      name: "DAY 2｜齋場御嶽",
+      date: "2026-09-13",
+      address: "〒901-1511 沖縄県南城市知念久手堅539",
+      notes: "下午南部景點。琉球聖地，出發前建議確認開放時間、維護公告與潮汐狀況。\nSefa-utaki sacred site."
+    },
+    {
+      id: "okinawa-20260913-chinen",
+      name: "DAY 2｜知念岬公園",
+      date: "2026-09-13",
+      address: "沖縄県南城市知念久手堅",
+      notes: "下午海景散步點，可接在齋場御嶽之後。傍晚返回那霸住宿。\nCape Chinen Park."
+    },
+    {
+      id: "okinawa-20260913-okinawaworld",
+      name: "DAY 2｜沖繩世界文化王國・玉泉洞",
+      date: "2026-09-13",
+      address: "沖縄県南城市玉城字前川1336",
+      notes: "下午可選或依時間調整。適合雨天備案，也可與南部行程順路安排。\nOkinawa World / Gyokusendo Cave."
+    },
+    {
+      id: "okinawa-20260914-zanpa",
+      name: "DAY 3｜殘波岬",
+      date: "2026-09-14",
+      address: "沖縄県中頭郡読谷村字宇座",
+      notes: "上午安排，斷崖海景與燈塔。早餐自理，晚餐可安排美國村。\nCape Zanpa: cliffs and lighthouse."
+    },
+    {
+      id: "okinawa-20260914-zakimi",
+      name: "DAY 3｜座喜味城跡",
+      date: "2026-09-14",
+      address: "〒904-0301 沖縄県中頭郡読谷村字座喜味708-6",
+      notes: "上午至中午，世界遺產。可與殘波岬、讀谷周邊一起排。\nZakimi Castle Ruins, World Heritage."
+    },
+    {
+      id: "okinawa-20260914-americanvillage",
+      name: "DAY 3｜美國村",
+      date: "2026-09-14",
+      address: "〒904-0115 沖縄県中頭郡北谷町字美浜9-1",
+      notes: "下午至晚上：購物、散步、拍照、晚餐自理。晚上返回那霸住宿。\nAmerican Village: shopping, dinner, night stroll."
+    },
+    {
+      id: "okinawa-20260915-shuri",
+      name: "DAY 4｜首里城公園",
+      date: "2026-09-15",
+      address: "〒903-0815 沖縄県那覇市首里金城町1-2",
+      notes: "上午建議開園前往；正殿復興工程中，出發前請確認開放區域。\nShuri Castle Park: go early; check restoration access."
+    },
+    {
+      id: "okinawa-20260915-ukishima",
+      name: "DAY 4｜浮島通り周邊停車",
+      date: "2026-09-15",
+      address: "浮島通り周邊，靠近國際通與牧志公設市場",
+      notes: "中午前移動到浮島通り周邊，找收費停車場停一整天，接續國際通步行行程。"
+    },
+    {
+      id: "okinawa-20260915-kokusai",
+      name: "DAY 4｜國際通・壺屋通",
+      date: "2026-09-15",
+      address: "國際通；牧志公設市場旁，步行約 2 分鐘可達",
+      notes: "中午至晚上：午餐、藥妝店、伴手禮、壺屋通、晚餐與夜間散步。若有飲酒，建議搭計程車返回住宿。\nKokusai-dori and Tsuboya pottery street."
+    },
+    {
+      id: "okinawa-20260916-checkout",
+      name: "DAY 5｜那霸 Check-out，驅車北上",
+      date: "2026-09-16",
+      address: "那霸住宿 → 北部今歸仁",
+      notes: "上午退房後北上。今日午餐安排本部漁港現撈海鮮，晚上住 Nakijin。"
+    },
+    {
+      id: "okinawa-20260916-kyoda",
+      name: "DAY 5｜道の駅 許田",
+      date: "2026-09-16",
+      address: "沖繩自動車道許田 IC 周邊",
+      notes: "上午北上途中休息點，可買伴手禮、補給與簡餐。可依路況保留或略過。\nMichi-no-Eki Kyoda, optional rest stop."
+    },
+    {
+      id: "okinawa-20260916-aquarium",
+      name: "DAY 5｜沖繩美麗海水族館",
+      date: "2026-09-16",
+      address: "〒905-0206 沖縄県国頭郡本部町字石川424",
+      notes: "中午至下午，建議安排 2-3 小時。\nChuraumi Aquarium."
+    },
+    {
+      id: "okinawa-20260916-motobu",
+      name: "DAY 5｜本部港交流市場（魚市場②）",
+      date: "2026-09-16",
+      address: "沖縄県国頭郡本部町渡久地一帶（本部港區）",
+      notes: "下午可安排本部港區海鮮。地址為概略區域，抵達後可沿港區步行尋找店家。\nMotobu Port Fish Market."
+    },
+    {
+      id: "okinawa-20260916-nakijin",
+      name: "DAY 5｜Check-in Nakijin 住宿",
+      date: "2026-09-16",
+      address: "346-1 Sakiyama, Nakijin, Kunigami District 905-0422",
+      notes: "傍晚入住北部住宿，9/16-9/18 住 Nakijin。"
+    },
+    {
+      id: "okinawa-20260917-castle",
+      name: "DAY 6｜今歸仁城跡",
+      date: "2026-09-17",
+      address: "〒905-0428 沖縄県国頭郡今帰仁村字今泊5101",
+      notes: "上午安排，世界遺產；早上人較少、景色佳。\nNakijin Castle Ruins."
+    },
+    {
+      id: "okinawa-20260917-kouri",
+      name: "DAY 6｜古宇利大橋・古宇利島",
+      date: "2026-09-17",
+      address: "沖縄県国頭郡今帰仁村古宇利",
+      notes: "中午至下午：古宇利大橋、心形岩、海灘。午餐自理。\nKouri Bridge and Kouri Island."
+    },
+    {
+      id: "okinawa-20260917-yagaji",
+      name: "DAY 6｜屋我地島・名護鳳梨園（可選）",
+      date: "2026-09-17",
+      address: "屋我地島、名護鳳梨園周邊",
+      notes: "下午備案，可依天氣與時間調整。傍晚建議於名護或今歸仁市區超市採買烤肉食材。"
+    },
+    {
+      id: "okinawa-20260917-bbq",
+      name: "DAY 6｜Nakijin 住宿烤肉",
+      date: "2026-09-17",
+      address: "346-1 Sakiyama, Nakijin, Kunigami District 905-0422",
+      notes: "晚餐：住宿烤肉。請先確認住宿設備、烤肉規定與超市採買時間。"
+    },
+    {
+      id: "okinawa-20260918-checkout",
+      name: "DAY 7｜Nakijin Check-out，驅車南下",
+      date: "2026-09-18",
+      address: "Nakijin → 豐見城 Outlet → 那霸機場",
+      notes: "上午約 10:00 前退房，南下約 1.5-2 小時。早餐自理。"
+    },
+    {
+      id: "okinawa-20260918-outlet",
+      name: "DAY 7｜沖縄アウトレットモールあしびなー",
+      date: "2026-09-18",
+      address: "〒901-0225 沖縄県豊見城市豊崎1-188",
+      notes: "11:30-16:00 購物與午餐自理。Outlet 距機場約 15 分鐘車程。\nOkinawa Outlet Mall Ashibinaa."
+    },
+    {
+      id: "okinawa-20260918-airport",
+      name: "DAY 7｜機場還車、CI133 起飛",
+      date: "2026-09-18",
+      address: "那覇空港",
+      notes: "16:00 前往機場；16:40-17:00 還車並辦理登機。19:45 CI133 那霸 → 高雄起飛，抵達時間請再確認。"
+    }
+  ];
+  function mergeOkinawaItinerary(trip) {
+    const baseItems = trip.items || {};
+    const existingAttractions = (baseItems.attraction || []).map((item) => normalizeOkinawaAttraction(item));
+    const alreadySeeded = trip.itinerarySeedVersion === OKINAWA_ITINERARY_VERSION;
+    const existingIds = new Set(existingAttractions.map((item) => item.id));
+    const missingAttractions = alreadySeeded ? [] : OKINAWA_ATTRACTIONS.filter((item) => !existingIds.has(item.id)).map((item) => ({
+      ...normalizeOkinawaAttraction(item),
+      addedBy: "\u884C\u7A0B\u9644\u4EF6",
+      createdAt: 1789142400000
+    }));
+    return {
+      ...trip,
+      itinerarySeedVersion: OKINAWA_ITINERARY_VERSION,
+      title: trip.title && trip.title !== "\u6211\u7684\u65C5\u884C" ? trip.title : "\u6C96\u7E69 7\u5929 6\u591C\u884C\u7A0B",
+      dayMeta: { ...OKINAWA_DAY_META, ...(trip.dayMeta || {}) },
+      items: {
+        accommodation: baseItems.accommodation || [],
+        car: baseItems.car || [],
+        ...baseItems,
+        attraction: [...existingAttractions, ...missingAttractions]
+      }
+    };
+  }
+  function normalizeOkinawaAttraction(item) {
+    if (!item || !OKINAWA_ITEM_TIMES[item.id]) return item;
+    const sourceIndex = OKINAWA_ATTRACTIONS.findIndex((seed) => seed.id === item.id);
+    return {
+      ...item,
+      time: item.time || OKINAWA_ITEM_TIMES[item.id],
+      itineraryOrder: item.itineraryOrder ?? (sourceIndex >= 0 ? sourceIndex : 999)
+    };
   }
   function shortDate(d) {
     if (!d) return null;
@@ -176,8 +415,149 @@
       if (!ka && !kb) return 0;
       if (!ka) return 1;
       if (!kb) return -1;
-      return ka.localeCompare(kb);
+      const dateCompare = ka.localeCompare(kb);
+      if (dateCompare !== 0) return dateCompare;
+      if (category === "attraction") {
+        const oa = Number.isFinite(a.itineraryOrder) ? a.itineraryOrder : 9999;
+        const ob = Number.isFinite(b.itineraryOrder) ? b.itineraryOrder : 9999;
+        if (oa !== ob) return oa - ob;
+      }
+      return 0;
     });
+  }
+  function dayLabel(date) {
+    if (!date) return "\u672A\u8A2D\u5B9A\u65E5\u671F";
+    const parts = String(date).split("-");
+    if (parts.length !== 3) return date;
+    const d = new Date(`${date}T00:00:00`);
+    const weekdays = ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"];
+    const weekday = Number.isNaN(d.getTime()) ? "" : `\uFF08${weekdays[d.getDay()]}\uFF09`;
+    return `${parseInt(parts[1], 10)}/${parseInt(parts[2], 10)}${weekday}`;
+  }
+  function groupedItemsByDate(list) {
+    return sortedItems("attraction", list).reduce((groups, item) => {
+      const key = item.date || "undated";
+      const last = groups[groups.length - 1];
+      if (last && last.key === key) {
+        last.items.push(item);
+      } else {
+        groups.push({ key, label: dayLabel(item.date), items: [item] });
+      }
+      return groups;
+    }, []);
+  }
+  function displayActivityName(name) {
+    return String(name || "").replace(/^DAY\s*\d+\s*[\uFF5C|]\s*/, "").trim();
+  }
+  function splitDetailLines(text) {
+    return String(text || "").split("\n").map((line) => line.trim()).filter(Boolean);
+  }
+  function splitTimeLabel(time) {
+    const parts = String(time || "").split("/").map((part) => part.trim()).filter(Boolean);
+    return { primary: parts[0] || "\u672A\u8A2D\u5B9A", secondary: parts.slice(1).join(" / ") };
+  }
+  function tripDayMeta(trip, key) {
+    return { ...(OKINAWA_DAY_META[key] || {}), ...((trip.dayMeta || {})[key] || {}) };
+  }
+  function escapeHtml(value) {
+    return String(value || "").replace(/[&<>"']/g, (ch) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[ch]);
+  }
+  function lineBreaks(value) {
+    return escapeHtml(value).replace(/\n/g, "<br>");
+  }
+  function exportItineraryHtml(trip) {
+    const groups = groupedItemsByDate((trip.items && trip.items.attraction) || []);
+    const rows = groups.map((group) => {
+      const meta = tripDayMeta(trip, group.key);
+      const displayDate = meta.displayDate || group.label;
+      const bodyRows = group.items.map((item) => {
+        const timeLabel = splitTimeLabel(item.time);
+        const lines = splitDetailLines(item.notes);
+        const notes = lines.slice(1).map((line) => `<p class="muted">${escapeHtml(line)}</p>`).join("");
+        return `<tr>
+          <td class="time"><strong>${escapeHtml(timeLabel.primary)}</strong>${timeLabel.secondary ? `<em>${escapeHtml(timeLabel.secondary)}</em>` : ""}</td>
+          <td><strong>${escapeHtml(displayActivityName(item.name))}</strong>${lines[0] ? `<p class="muted">${escapeHtml(lines[0])}</p>` : ""}</td>
+          <td>${item.address ? `<p>${lineBreaks(item.address)}</p>` : ""}${notes}</td>
+        </tr>`;
+      }).join("");
+      return `<section class="day">
+        <header>
+          <div class="day-title"><span>${escapeHtml(meta.day || "DAY")}</span><h2>${escapeHtml(displayDate)}</h2></div>
+          <div class="wave">~~~~~~~~~~~~~~~~~~~~~~~~</div>
+        </header>
+        <div class="summary">
+          <p><strong>用餐 Meals</strong> ${lineBreaks(meta.meals || "請補上用餐備註")}${meta.stay ? ` <strong class="stay">住宿 Stay</strong> ${lineBreaks(meta.stay)}` : ""}</p>
+          ${meta.mealsEn ? `<p class="muted italic">${escapeHtml(meta.mealsEn)}</p>` : ""}
+        </div>
+        <table>
+          <thead><tr><th class="time">時間<em>Time</em></th><th>行程內容<em>Activity</em></th><th>地址 / 備註<em>Address / Notes</em></th></tr></thead>
+          <tbody>${bodyRows}</tbody>
+        </table>
+      </section>`;
+    }).join("");
+    return `<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(trip.title || "行程表")}</title>
+  <style>
+    body { margin: 0; background: #f6efe3; color: #233946; font-family: "Noto Sans TC", Arial, sans-serif; }
+    main { max-width: 1040px; margin: 0 auto; padding: 32px 22px 56px; }
+    h1 { margin: 0 0 24px; color: #236F78; font-size: 30px; }
+    .day { margin: 0 0 26px; background: #fff8e8; border: 1px solid rgba(36,48,42,.2); break-inside: avoid; }
+    header { padding: 24px 30px; background: #236F78; color: #fff8e8; }
+    .day-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 26px; }
+    .day-title span { color: #ffc45d; font-size: 42px; font-weight: 900; letter-spacing: .02em; }
+    .day-title h2 { margin: 0; font-size: 34px; }
+    .wave { margin-top: 18px; color: #ffc45d; font-weight: 700; letter-spacing: 2px; overflow: hidden; white-space: nowrap; }
+    .summary { padding: 14px 24px; background: #fff0cf; border-bottom: 1px solid rgba(36,48,42,.18); }
+    .summary p { margin: 0 0 6px; line-height: 1.65; }
+    .summary p:last-child { margin-bottom: 0; }
+    strong { color: #0f6875; }
+    .stay { margin-left: 24px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; background: #fff; }
+    th, td { border: 1px solid rgba(36,48,42,.2); padding: 13px 16px; vertical-align: top; line-height: 1.55; }
+    th { background: #dceeed; color: #0f6875; text-align: center; font-size: 18px; }
+    th em, td.time em { display: block; margin-top: 4px; color: #7b7468; font-size: 14px; font-style: italic; font-weight: 500; }
+    .time { width: 140px; text-align: center; }
+    td p { margin: 0 0 6px; }
+    td p:last-child { margin-bottom: 0; }
+    .muted { color: #776f64; }
+    .italic { font-style: italic; }
+    tr:nth-child(even) td { background: #f8faf8; }
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .day { box-shadow: none; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>${escapeHtml(trip.title || "行程表")}</h1>
+    ${rows || "<p>目前沒有景點行程。</p>"}
+  </main>
+</body>
+</html>`;
+  }
+  function downloadItinerary(trip) {
+    const html = exportItineraryHtml(trip);
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(trip.title || "\u884C\u7A0B\u8868").replace(/[\\/:*?"<>|]/g, "_")}.html`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
   function App() {
     const [trip, setTrip] = useState(null);
@@ -193,14 +573,23 @@
     const [formError, setFormError] = useState("");
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [titleDraft, setTitleDraft] = useState("");
+    const [dayMetaKey, setDayMetaKey] = useState(null);
+    const [dayMetaValues, setDayMetaValues] = useState({});
     const formOpenRef = useRef(formOpen);
+    const dayMetaKeyRef = useRef(dayMetaKey);
     formOpenRef.current = formOpen;
+    dayMetaKeyRef.current = dayMetaKey;
     useEffect(() => {
       let cancelled = false;
       (async () => {
         try {
           const res = await window.storage.get("trip-data", true);
-          const parsed = JSON.parse(res.value);
+          const loadedTrip = JSON.parse(res.value);
+          const parsed = mergeOkinawaItinerary(loadedTrip);
+          if (loadedTrip.itinerarySeedVersion !== OKINAWA_ITINERARY_VERSION) {
+            window.storage.set("trip-data", JSON.stringify(parsed), true).catch(() => {
+            });
+          }
           if (!cancelled) {
             setTrip(parsed);
             setTitleDraft(parsed.title || "");
@@ -230,10 +619,10 @@
     }, []);
     useEffect(() => {
       const t = setInterval(async () => {
-        if (formOpenRef.current) return;
+        if (formOpenRef.current || dayMetaKeyRef.current) return;
         try {
           const res = await window.storage.get("trip-data", true);
-          const fresh = JSON.parse(res.value);
+          const fresh = mergeOkinawaItinerary(JSON.parse(res.value));
           setTrip(fresh);
         } catch (e) {
         }
@@ -284,6 +673,29 @@
       setEditingId(null);
       setFormValues({});
       setFormError("");
+    }
+    function openDayMetaForm(key) {
+      setDayMetaKey(key);
+      setDayMetaValues(tripDayMeta(trip, key));
+    }
+    function closeDayMetaForm() {
+      setDayMetaKey(null);
+      setDayMetaValues({});
+    }
+    function updateDayMetaField(key, value) {
+      setDayMetaValues((prev) => ({ ...prev, [key]: value }));
+    }
+    function submitDayMetaForm(e) {
+      e.preventDefault();
+      if (!dayMetaKey) return;
+      persist({
+        ...trip,
+        dayMeta: {
+          ...(trip.dayMeta || {}),
+          [dayMetaKey]: dayMetaValues
+        }
+      });
+      closeDayMetaForm();
     }
     function updateField(key, value) {
       setFormValues((prev) => ({ ...prev, [key]: value }));
@@ -349,7 +761,15 @@
         isEditing: !!editingId,
         error: formError
       }
-    ), /* @__PURE__ */ React.createElement("div", { className: "app-shell max-w-3xl mx-auto px-4 sm:px-6 py-7 sm:py-14" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 mb-6 sm:mb-8" }, /* @__PURE__ */ React.createElement(
+    ), dayMetaKey && /* @__PURE__ */ React.createElement(
+      DayMetaModal,
+      {
+        values: dayMetaValues,
+        onChange: updateDayMetaField,
+        onSubmit: submitDayMetaForm,
+        onClose: closeDayMetaForm
+      }
+    ), /* @__PURE__ */ React.createElement("div", { className: `app-shell ${activeTab === "attraction" ? "max-w-5xl" : "max-w-3xl"} mx-auto px-4 sm:px-6 py-7 sm:py-14` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 mb-6 sm:mb-8" }, /* @__PURE__ */ React.createElement(
       "div",
       {
         className: "font-display text-xs tracking-widest",
@@ -421,18 +841,41 @@
         className: "content-panel rounded-b-xl p-3 sm:p-6",
         style: { background: "rgba(20,91,101,0.34)", border: `1px solid ${PANEL_LINE}`, borderTop: "none", boxShadow: "0 20px 55px rgba(89,54,38,0.16)" }
       },
-      /* @__PURE__ */ React.createElement(
+      /* @__PURE__ */ React.createElement("div", { className: "action-row flex flex-col sm:flex-row gap-2 mb-4 sm:mb-5" }, /* @__PURE__ */ React.createElement(
         "button",
         {
           onClick: () => openAddForm(activeTab),
-          className: "add-button flex items-center justify-center gap-2 px-4 py-3 rounded-full font-body text-sm mb-4 sm:mb-5 transition-transform hover:scale-[1.02]",
+          className: "add-button flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-full font-body text-sm transition-transform hover:scale-[1.02]",
           style: { border: `1.5px dashed ${PAPER}`, color: PAPER, background: "rgba(255,240,207,0.08)" }
         },
         /* @__PURE__ */ React.createElement(Plus, { size: 16 }),
         "\u65B0\u589E",
         CATEGORIES[activeTab].label
-      ),
-      (trip.items[activeTab] || []).length === 0 ? /* @__PURE__ */ React.createElement(EmptyState, { label: CATEGORIES[activeTab].label }) : /* @__PURE__ */ React.createElement("div", { className: "flex flex-col gap-3 sm:gap-4" }, sortedItems(activeTab, trip.items[activeTab]).map((item) => /* @__PURE__ */ React.createElement(
+      ), activeTab === "attraction" && /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          onClick: () => downloadItinerary(trip),
+          className: "export-button flex items-center justify-center gap-2 px-4 py-3 rounded-full font-body text-sm font-bold transition-transform hover:scale-[1.02]",
+          style: { background: GOLD, color: TEXT_DARK }
+        },
+        /* @__PURE__ */ React.createElement(Download, { size: 16 }),
+        "\u532F\u51FA\u884C\u7A0B\u8868"
+      )),
+      (trip.items[activeTab] || []).length === 0 ? /* @__PURE__ */ React.createElement(EmptyState, { label: CATEGORIES[activeTab].label }) : activeTab === "attraction" ? /* @__PURE__ */ React.createElement("div", { className: "flex flex-col gap-4 sm:gap-5" }, groupedItemsByDate(trip.items.attraction || []).map((group) => /* @__PURE__ */ React.createElement(
+        DayBasket,
+        {
+          key: group.key,
+          group,
+          meta: tripDayMeta(trip, group.key),
+          cfg: CATEGORIES.attraction,
+          onEditDay: () => openDayMetaForm(group.key),
+          onEditItem: (item) => openEditForm("attraction", item),
+          onDeleteRequest: requestDelete,
+          onDeleteConfirm: (id) => confirmDelete("attraction", id),
+          onDeleteCancel: cancelDelete,
+          confirmDeleteId
+        }
+      ))) : /* @__PURE__ */ React.createElement("div", { className: "flex flex-col gap-3 sm:gap-4" }, sortedItems(activeTab, trip.items[activeTab]).map((item) => /* @__PURE__ */ React.createElement(
         TicketCard,
         {
           key: item.id,
@@ -447,6 +890,32 @@
         }
       )))
     ), saveError && /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mt-4", style: { color: "#E8A0A0" } }, saveError), /* @__PURE__ */ React.createElement("p", { className: "text-center text-xs mt-8 sm:mt-10 px-2", style: { color: "rgba(255,248,232,0.62)" } }, "\u9019\u4EFD\u884C\u7A0B\u6703\u5132\u5B58\u5728\u96F2\u7AEF\u8CC7\u6599\u5EAB\u88E1\uFF0C\u670B\u53CB\u958B\u555F\u540C\u4E00\u500B\u7DB2\u5740\u5C31\u80FD\u770B\u5230\u66F4\u65B0\u3002")));
+  }
+  function DayBasket({ group, meta, cfg, onEditDay, onEditItem, onDeleteRequest, onDeleteConfirm, onDeleteCancel, confirmDeleteId }) {
+    const displayDate = meta.displayDate || group.label;
+    return /* @__PURE__ */ React.createElement(
+      "section",
+      {
+        className: "itinerary-day overflow-hidden",
+        style: { background: PAPER_2, color: TEXT_DARK, border: `1px solid rgba(36,48,42,0.18)` }
+      },
+      /* @__PURE__ */ React.createElement(
+        "div",
+        {
+          className: "itinerary-day-head px-4 py-4 sm:px-6 sm:py-5 relative",
+          style: { background: PAGE_BG, color: PAPER }
+        },
+        /* @__PURE__ */ React.createElement("div", { className: "flex items-start justify-between gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-baseline gap-x-6 gap-y-1 min-w-0" }, /* @__PURE__ */ React.createElement("span", { className: "font-display text-3xl sm:text-4xl font-black", style: { color: GOLD, letterSpacing: "0" } }, meta.day || "DAY"), /* @__PURE__ */ React.createElement("h2", { className: "font-body font-black text-2xl sm:text-3xl leading-tight break-words" }, displayDate)), /* @__PURE__ */ React.createElement("button", { onClick: onEditDay, className: "day-edit-button p-2 rounded-md shrink-0", style: { color: PAPER, background: "rgba(255,248,232,0.14)" }, "aria-label": "\u7DE8\u8F2F DAY \u5340\u584A" }, /* @__PURE__ */ React.createElement(Pencil, { size: 16 }))),
+        /* @__PURE__ */ React.createElement("div", { className: "wave-divider font-mono mt-4 text-lg", style: { color: GOLD } }, "\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C\u301C")
+      ),
+      /* @__PURE__ */ React.createElement("div", { className: "itinerary-summary px-4 py-3 sm:px-6", style: { background: PAPER, borderBottom: "1px solid rgba(36,48,42,0.16)" } }, /* @__PURE__ */ React.createElement("p", { className: "text-sm sm:text-base leading-relaxed" }, /* @__PURE__ */ React.createElement("span", { className: "font-bold", style: { color: PAGE_BG } }, "\u7528\u9910 Meals"), " ", meta.meals || "\u8ACB\u88DC\u4E0A\u7528\u9910\u5099\u8A3B", meta.stay && /* @__PURE__ */ React.createElement(React.Fragment, null, " \u3000 ", /* @__PURE__ */ React.createElement("span", { className: "font-bold", style: { color: PAGE_BG } }, "\u4F4F\u5BBF Stay"), " ", meta.stay)), meta.mealsEn && /* @__PURE__ */ React.createElement("p", { className: "text-xs sm:text-sm italic mt-1", style: { color: TEXT_MUTED } }, meta.mealsEn)),
+      /* @__PURE__ */ React.createElement("div", { className: "itinerary-table-wrap" }, /* @__PURE__ */ React.createElement("table", { className: "itinerary-table w-full border-collapse" }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { className: "itinerary-time-col" }, /* @__PURE__ */ React.createElement("span", null, "\u6642\u9593"), /* @__PURE__ */ React.createElement("em", null, "Time")), /* @__PURE__ */ React.createElement("th", null, /* @__PURE__ */ React.createElement("span", null, "\u884C\u7A0B\u5167\u5BB9"), /* @__PURE__ */ React.createElement("em", null, "Activity")), /* @__PURE__ */ React.createElement("th", null, /* @__PURE__ */ React.createElement("span", null, "\u5730\u5740 / \u5099\u8A3B"), /* @__PURE__ */ React.createElement("em", null, "Address / Notes")))), /* @__PURE__ */ React.createElement("tbody", null, group.items.map((item) => {
+        const lines = splitDetailLines(item.notes);
+        const confirming = confirmDeleteId === item.id;
+        const timeLabel = splitTimeLabel(item.time);
+        return /* @__PURE__ */ React.createElement("tr", { key: item.id }, /* @__PURE__ */ React.createElement("td", { className: "itinerary-time-col" }, /* @__PURE__ */ React.createElement("span", { className: "font-bold" }, timeLabel.primary), timeLabel.secondary && /* @__PURE__ */ React.createElement("em", null, timeLabel.secondary)), /* @__PURE__ */ React.createElement("td", null, /* @__PURE__ */ React.createElement("div", { className: "flex items-start justify-between gap-2" }, /* @__PURE__ */ React.createElement("div", { className: "min-w-0" }, /* @__PURE__ */ React.createElement("strong", { className: "block leading-snug break-words" }, displayActivityName(item.name)), lines[0] && /* @__PURE__ */ React.createElement("p", { className: "text-sm mt-1", style: { color: TEXT_MUTED } }, lines[0])), /* @__PURE__ */ React.createElement("div", { className: "itinerary-row-actions flex items-center gap-1 shrink-0" }, /* @__PURE__ */ React.createElement("button", { onClick: () => onEditItem(item), className: "p-1.5 rounded-md", style: { color: TEXT_MUTED }, "aria-label": "\u7DE8\u8F2F" }, /* @__PURE__ */ React.createElement(Pencil, { size: 15 })), confirming ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { onClick: () => onDeleteConfirm(item.id), className: "text-xs font-bold px-2 py-1 rounded-md", style: { background: DANGER, color: PAPER_2 } }, "\u522A\u9664"), /* @__PURE__ */ React.createElement("button", { onClick: onDeleteCancel, className: "p-1.5 rounded-md", style: { color: TEXT_MUTED }, "aria-label": "\u53D6\u6D88" }, /* @__PURE__ */ React.createElement(X, { size: 15 }))) : /* @__PURE__ */ React.createElement("button", { onClick: () => onDeleteRequest(item.id), className: "p-1.5 rounded-md", style: { color: TEXT_MUTED }, "aria-label": "\u522A\u9664" }, /* @__PURE__ */ React.createElement(Trash2, { size: 15 }))))), /* @__PURE__ */ React.createElement("td", null, item.address && /* @__PURE__ */ React.createElement("p", { className: "break-words" }, item.address), lines.slice(1).map((line, idx) => /* @__PURE__ */ React.createElement("p", { key: idx, className: "text-sm mt-1", style: { color: TEXT_MUTED } }, line))));
+      }))))
+    );
   }
   function TicketCard({ category, cfg, item, onEdit, onDeleteRequest, onDeleteConfirm, onDeleteCancel, confirming }) {
     const stubKeys = cfg.stub;
@@ -594,6 +1063,36 @@
       )
     );
   }
+  function DayMetaModal({ values, onChange, onSubmit, onClose }) {
+    const fields = [
+      { key: "day", label: "DAY \u6A19\u984C", placeholder: "\u4F8B\u5982\uFF1ADAY 1 \u6216 \u7B2C 1 \u5929" },
+      { key: "displayDate", label: "\u65E5\u671F\u986F\u793A", placeholder: "\u4F8B\u5982\uFF1A9/12\uFF08\u516D / Sat\uFF09" },
+      { key: "meals", label: "\u7528\u9910 Meals", textarea: true, placeholder: "\u65E9\u9910\uFF1A\u81EA\u7406\u3000\u5348\u9910\uFF1A...\u3000\u665A\u9910\uFF1A..." },
+      { key: "mealsEn", label: "\u82F1\u6587\u7528\u9910", textarea: true, placeholder: "Breakfast: Own | Lunch: ... | Dinner: ..." },
+      { key: "stay", label: "\u4F4F\u5BBF Stay", textarea: true, placeholder: "\u4F8B\u5982\uFF1A\u540C Day1\uFF08\u90A3\u9738\uFF09Same as Day1" }
+    ];
+    return /* @__PURE__ */ React.createElement(
+      "div",
+      {
+        className: "fixed inset-0 z-50 flex items-center justify-center p-4",
+        style: { background: "rgba(10,18,16,0.65)" },
+        onMouseDown: (e) => {
+          if (e.target === e.currentTarget) onClose();
+        }
+      },
+      /* @__PURE__ */ React.createElement(
+        "form",
+        {
+          onSubmit,
+          className: "w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto",
+          style: { background: PAPER_2, color: TEXT_DARK }
+        },
+        /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mb-4" }, /* @__PURE__ */ React.createElement("h2", { className: "font-body font-bold text-lg" }, "\u7DE8\u8F2F DAY \u5340\u584A"), /* @__PURE__ */ React.createElement("button", { type: "button", onClick: onClose, style: { color: TEXT_MUTED }, "aria-label": "\u95DC\u9589" }, /* @__PURE__ */ React.createElement(X, { size: 20 }))),
+        /* @__PURE__ */ React.createElement("div", { className: "flex flex-col gap-3.5" }, fields.map((f) => /* @__PURE__ */ React.createElement("div", { key: f.key }, /* @__PURE__ */ React.createElement("label", { className: "text-xs font-body block mb-1", style: { color: TEXT_MUTED } }, f.label), f.textarea ? /* @__PURE__ */ React.createElement("textarea", { value: values[f.key] || "", onChange: (e) => onChange(f.key, e.target.value), placeholder: f.placeholder, rows: 3, className: "w-full rounded-lg px-3 py-2 text-sm font-body", style: { border: "1px solid #D9CDB6", background: "#fff" } }) : /* @__PURE__ */ React.createElement("input", { type: "text", value: values[f.key] || "", onChange: (e) => onChange(f.key, e.target.value), placeholder: f.placeholder, className: "w-full rounded-lg px-3 py-2 text-sm font-body", style: { border: "1px solid #D9CDB6", background: "#fff" } })))),
+        /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mt-5" }, /* @__PURE__ */ React.createElement("button", { type: "submit", className: "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full font-body font-bold text-sm", style: { background: CORAL, color: PAPER_2 } }, /* @__PURE__ */ React.createElement(Check, { size: 16 }), "\u5132\u5B58\u8B8A\u66F4"), /* @__PURE__ */ React.createElement("button", { type: "button", onClick: onClose, className: "px-4 py-2.5 rounded-full font-body text-sm", style: { border: "1px solid #D9CDB6", color: TEXT_MUTED } }, "\u53D6\u6D88"))
+      )
+    );
+  }
   function NamePromptModal({ nameDraft, setNameDraft, onSave, onSkip }) {
     return /* @__PURE__ */ React.createElement(
       "div",
@@ -710,6 +1209,68 @@
         overflow: visible;
         box-shadow: 0 14px 28px rgba(108,64,43,0.2), inset 0 1px 0 rgba(255,255,255,0.56);
       }
+      .itinerary-day {
+        border-radius: 0.45rem;
+        box-shadow: 0 16px 34px rgba(18,59,68,0.18), inset 0 1px 0 rgba(255,255,255,0.5);
+      }
+      .itinerary-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        background: #fff;
+      }
+      .itinerary-table {
+        min-width: 760px;
+        table-layout: fixed;
+      }
+      .itinerary-table th,
+      .itinerary-table td {
+        border: 1px solid rgba(36,48,42,0.18);
+        vertical-align: top;
+      }
+      .itinerary-table th {
+        background: rgba(35,111,120,0.14);
+        color: #0F6875;
+        padding: 1rem;
+        text-align: center;
+        font-weight: 900;
+      }
+      .itinerary-table th span,
+      .itinerary-table th em {
+        display: block;
+      }
+      .itinerary-table th em {
+        margin-top: 0.35rem;
+        color: rgba(35,57,70,0.62);
+        font-size: 0.86rem;
+        font-style: italic;
+        font-weight: 500;
+      }
+      .itinerary-table td {
+        padding: 0.95rem 1rem;
+        background: rgba(255,255,255,0.9);
+        line-height: 1.55;
+      }
+      .itinerary-table tbody tr:nth-child(even) td {
+        background: rgba(246,249,246,0.9);
+      }
+      .itinerary-time-col {
+        width: 9.5rem;
+        text-align: center;
+      }
+      .itinerary-time-col em {
+        display: block;
+        margin-top: 0.25rem;
+        color: ${TEXT_MUTED};
+        font-size: 0.86rem;
+        font-style: italic;
+        font-weight: 500;
+      }
+      .itinerary-row-actions button:hover {
+        background: rgba(35,111,120,0.08);
+      }
+      .day-edit-button:hover {
+        background: rgba(255,248,232,0.24) !important;
+      }
       .ticket-stub {
         border-top: 1.5px dashed rgba(36,48,42,0.3);
         min-width: 0;
@@ -780,9 +1341,42 @@
           width: 100%;
           min-height: 3rem;
         }
+        .export-button {
+          width: 100%;
+          min-height: 3rem;
+        }
         .ticket-card {
           border-radius: 0.85rem;
           overflow: hidden;
+        }
+        .itinerary-day {
+          border-radius: 0.5rem;
+        }
+        .itinerary-day-head {
+          padding: 1rem;
+        }
+        .itinerary-day-head h2 {
+          font-size: 1.5rem;
+        }
+        .day-edit-button {
+          margin-top: 0.15rem;
+        }
+        .wave-divider {
+          white-space: nowrap;
+          overflow: hidden;
+        }
+        .itinerary-summary {
+          padding: 0.9rem 1rem;
+        }
+        .itinerary-table {
+          min-width: 720px;
+        }
+        .itinerary-table th,
+        .itinerary-table td {
+          padding: 0.85rem;
+        }
+        .itinerary-time-col {
+          width: 8.5rem;
         }
         .ticket-main {
           padding: 1rem;
